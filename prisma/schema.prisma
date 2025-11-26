@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Author {
+  id        String   @id @default(dbgenerated("(UUID())")) @db.VarChar(36)
+  name      String   @db.VarChar(128)
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  books     Book[]
+
+  @@index([name])
+  @@map("author")
+}
+
+model Publisher {
+  id        String   @id @default(dbgenerated("(UUID())")) @db.VarChar(36)
+  name      String   @db.VarChar(128)
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  books     Book[]
+
+  @@index([name])
+  @@map("publisher")
+}
+
+model User {
+  id              String      @id @default(dbgenerated("(UUID())")) @db.VarChar(36)
+  email           String      @unique @db.VarChar(254)
+  name            String      @db.VarChar(512)
+  password        String      @db.VarChar(256)
+  isAdmin         Boolean     @default(false) @map("is_admin")
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  isDeleted       Boolean     @default(false) @map("is_deleted")
+  rentalLogs      RentalLog[]
+
+  @@map("user")
+}
+
+model Book {
+  isbn              BigInt      @id @db.UnsignedBigInt
+  title             String      @db.VarChar(512)
+  authorId          String      @map("author_id") @db.VarChar(36)
+  publisherId       String      @map("publisher_id") @db.VarChar(36)
+  publicationYear   Int         @map("publication_year") @db.UnsignedInt
+  publicationMonth  Int         @map("publication_month") @db.UnsignedTinyInt
+  isDeleted         Boolean     @default(false) @map("is_deleted")
+  author            Author      @relation(fields: [authorId], references: [id])
+  publisher         Publisher   @relation(fields: [publisherId], references: [id])
+  rentalLogs        RentalLog[]
+
+  @@map("book")
+}
+
+model RentalLog {
+  id            String    @id @default(dbgenerated("(UUID())")) @db.VarChar(36)
+  bookIsbn      BigInt    @map("book_isbn") @db.UnsignedBigInt
+  userId        String    @map("user_id") @db.VarChar(36)
+  checkoutDate  DateTime  @map("checkout_date")
+  dueDate       DateTime  @map("due_date")
+  returnedDate  DateTime? @map("returned_date")
+  book          Book      @relation(fields: [bookIsbn], references: [isbn])
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@map("rental_log")
+}
