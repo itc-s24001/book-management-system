@@ -5,9 +5,9 @@ const router = Router()
 
 router.get('/author', async (req, res) => {
     try {
-        const { keyword } = req.body
+        const { keyword } = req.query  // クエリパラメータから取得
 
-        if (!keyword) {
+        if (!keyword || typeof keyword !== 'string') {
             return res.status(400).json({ message: 'Missing keyword' })
         }
 
